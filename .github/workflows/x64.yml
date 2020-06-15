@@ -74,9 +74,6 @@ jobs:
       run: |
         [ -e files ] && mv files openwrt/files
         [ -e $CONFIG_FILE ] && mv $CONFIG_FILE openwrt/.config
-        chmod +x $DIY_SH
-        cd openwrt
-        ../$DIY_SH
      #若使用./scripts/diffconfig.sh > config.seed生成的差异文件恢复扩展为完整的.config配置文件请删除下行注释符号
      #   make defconfig
 
@@ -118,8 +115,8 @@ jobs:
       if: env.UPLOAD_FIRMWARE == 'true' && !cancelled()
       run: |
         cd openwrt/bin/targets/*/*
-        #    rm -rf packages openwrt-armvirt-64-default.manifest openwrt-armvirt-64-Image openwrt-armvirt-64-root.squashfs.gz sha256sums
-        echo "::set-env name=FIRMWARE::$(pwd)"
+        rm -rf packages
+        echo "::set-env name=FIRMWARE::$PWD"
         echo "::set-output name=status::success"
     - name: Upload firmware directory
       uses: actions/upload-artifact@master

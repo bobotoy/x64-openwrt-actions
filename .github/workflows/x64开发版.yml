@@ -5,9 +5,9 @@ on:
     types: [x64开发版,sshx64开发版]
 #  release:
 #    types: published
-#  push:
-#    branches:
-#      - master
+  push:
+    branches:
+      - master
     paths:
       - 'x64.config'
   schedule:

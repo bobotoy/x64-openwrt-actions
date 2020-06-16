@@ -3,10 +3,10 @@ name: Build OpenWrt
 on:
 #  release:
 #    types: [published]
-  push:
-    branches:
+#  push:
+#    branches:
       - master
-    paths:
+#    paths:
       - 'x64.config'
       - '.github/workflows/x64.yml'
 #  schedule:

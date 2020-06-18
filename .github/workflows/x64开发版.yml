@@ -12,16 +12,16 @@ on:
       - 'x64.config'
   schedule:
     - cron: 35 18 * * *
-#  watch:
-#    types: started
+  watch:
+    types: started
 
 env:
   REPO_URL: https://github.com/coolsnowwolf/lede
   REPO_BRANCH: master
   CONFIG_FILE: x64.config
-  DIY_SH: 开发版.sh
+  DIY_SH: diy.sh
   SSH_ACTIONS: true
-  UPLOAD_BIN_DIR: false
+  UPLOAD_BIN_DIR: true
   UPLOAD_FIRMWARE: true
   UPLOAD_WETRANSFER: false
   UPLOAD_COWTRANSFER: false
@@ -51,6 +51,7 @@ jobs:
         sudo -E apt-get -qq clean
         sudo mkdir -p /workdir
         sudo chown $USER:$GROUPS /workdir
+        
     - name: Clone source code # 克隆的源代码
       working-directory: /workdir
       run: |
@@ -61,6 +62,18 @@ jobs:
         useVersionInfo=$(git show -s --date=short --format="Author: %an<br/>date: %cd<br/>commit: %s<br/>commit hash: %H")
         echo "::set-env name=useVersionInfo::$useVersionInfo"
         echo "::set-env name=DATE::$(date "+%Y-%m-%d %H:%M:%S")"
+        
+    - name: Clone other packages
+      run: |
+        git clone https://github.com/project-openwrt/luci-app-koolproxyR.git openwrt/package/luci-app-koolproxyR
+        git clone https://github.com/tty228/luci-app-serverchan.git package/luci-app-serverchan
+        
+    - name: Update Feeds
+      run: |
+       cd openwrt
+       echo "src-git kenzo https://github.com/kenzok8/openwrt-packages" >> feeds.conf.default
+       echo "src-git small https://github.com/kenzok8/small" >> feeds.conf.default 
+       
     - name: Update feeds
       run: cd openwrt && ./scripts/feeds update -a
 
@@ -86,12 +99,13 @@ jobs:
         make download -j8
         find dl -size -1024c -exec ls -l {} \;
         find dl -size -1024c -exec rm -f {} \;
+        
     - name: Compile the firmware
       id: compile
       run: |
         cd openwrt
-        echo -e "$(($(nproc) + 1)) thread compile"
-        make -j$(($(nproc) + 1)) || make -j1 V=s
+        echo -e "$(nproc) thread compile"
+        make -j$(nproc) || make -j1 V=s
         echo "::set-output name=status::success"
         
     - name: Check space usage
@@ -102,8 +116,15 @@ jobs:
       uses: actions/upload-artifact@master
       if: steps.compile.outputs.status == 'success' && env.UPLOAD_BIN_DIR == 'true'
       with:
-        name: x64
+        name: OpenWrt_directory
         path: openwrt/bin
+        
+    - name: Upload Config
+      uses: actions/upload-artifact@master
+      if: steps.compile.outputs.status == 'success' && env.SSH_ACTIONS == 'true'
+      with:
+        name: OpenWrt_config
+        path: openwrt/.config
 
     - name: Organize files
       id: organize

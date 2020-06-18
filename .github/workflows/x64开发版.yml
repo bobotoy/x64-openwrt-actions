@@ -66,7 +66,7 @@ jobs:
     - name: Clone other packages
       run: |
         git clone https://github.com/project-openwrt/luci-app-koolproxyR.git openwrt/package/luci-app-koolproxyR
-        git clone https://github.com/tty228/luci-app-serverchan.git package/luci-app-serverchan
+        git clone https://github.com/tty228/luci-app-serverchan.git openwrt/package/luci-app-serverchan
         
     - name: Update Feeds
       run: |
